@@ -1,4 +1,5 @@
 #include "gol.h"
+#include "text.h"
 // ==================== ARDUINO BITMASK INFO ====================
 // dataA = 2           PD2   pin 1 on CN0/CN1  active HIGH
 // dataB = 3           PD3   pin 2 on CN0/CN1  active HIGH
@@ -28,10 +29,12 @@ void setup() {
   DDRD = B11111110; PORTD = B11100010;
   DDRB = B00000111; PORTB = B00000000;
   clearDisplay();
+  
 }
 int speeds = 100;
 
 void loop() {
+  write_string(displayBuffer, "MDRC RULES");
   for(;;){
     update_life(displayBuffer);
   }

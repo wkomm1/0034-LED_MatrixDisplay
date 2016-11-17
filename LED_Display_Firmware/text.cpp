@@ -1,7 +1,7 @@
 #include <stdint.h>
 /* Stole the font code from https://raw.githubusercontent.com/evanrich/Bluetooth-LED-Sign/master/Controller%20Code/Arduino%201.0/font.h  */ 
 #include "text.h"
-#include "font.h"
+#include "fontRev.h"
 
 /* We need to display some text...
  * Lets start with a function that will write a character to the board starting

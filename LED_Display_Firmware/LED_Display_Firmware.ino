@@ -1,3 +1,4 @@
+#include "gol.h"
 // ==================== ARDUINO BITMASK INFO ====================
 // dataA = 2           PD2   pin 1 on CN0/CN1  active HIGH
 // dataB = 3           PD3   pin 2 on CN0/CN1  active HIGH
@@ -31,6 +32,10 @@ void setup() {
 int speeds = 100;
 
 void loop() {
+  for(;;){
+    update_life(displayBuffer);
+  }
+    
   for (int m = 0; m < 4; m++) {
     //for (int i = 0; i < pixleLength; i++)displayBuffer[i] = 0;
     //for (int i = 0; i < pixleLength; i++) if (i % 2) displayBuffer[i] = 0xFFFF;

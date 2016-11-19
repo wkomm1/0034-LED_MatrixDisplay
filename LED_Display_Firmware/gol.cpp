@@ -35,7 +35,9 @@ void update_life(uint16_t *board){
 
 	/* Take care of the first row */ 
 	curCol = firstCol;
-	nextCol = board[1];
+	nextCol = board[1];	
+	/*Serial.printf("First column: %x\n", board[0]);*/
+	/*Serial.printf("second column: %x\n", board[1]);*/
 	virginPrevCol = firstCol; /* Save this for later */ 
 	board[0] = update_life_column(curCol, lastCol, nextCol);
 	for (colIndex = 1;colIndex < NUM_OF_COLS;colIndex++){
@@ -50,6 +52,8 @@ void update_life(uint16_t *board){
 		board[colIndex] = update_life_column(curCol, virginPrevCol, nextCol);
 		virginPrevCol = curCol;  /* Save the column for next go */ 
 	}
+	/*Serial.printf("new First column: %x\n", board[0]);*/
+	/*Serial.printf("new second column: %x\n", board[1]);*/
 }
 
 #define BIT0 (1<<0)
@@ -75,6 +79,7 @@ uint16_t update_life_column(uint16_t curCol, uint16_t prevCol, uint16_t nextCol)
 	uint16_t nextRowBit, prevRowBit, curRowBit;
 	int rowIndex;
 	int count;
+	/*Serial.printf("Old: %x", curCol);*/
 	/* We will handle the first row and last row independently.  */ 
 	outCol = 0;
 	/* Now for the rest of the bits... */ 
@@ -126,14 +131,15 @@ uint16_t update_life_column(uint16_t curCol, uint16_t prevCol, uint16_t nextCol)
 		if (curCol & curRowBit){
 			/* Then we are alive */ 
 			if (count == 2 | count == 3){
-				nextCol |= curRowBit;
+				outCol |= curRowBit;
 				/* Then we live, otherwise, we are dead. */ 
 			}
 		} else {
 			if (count == 3){
-				nextCol |= curRowBit;
+				outCol |= curRowBit;
 			}
 		}
 	}
+	/*Serial.printf("New: %x", outCol);*/
 	return outCol;
 }

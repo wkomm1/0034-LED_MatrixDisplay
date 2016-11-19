@@ -30,6 +30,8 @@ void setup() {
 
 
 void loop() {
+  write_string_small_top(displayBuffer, "top");
+  write_string_small_bottom(displayBuffer, "bottom");
   updateDisplay(500);
 }
 

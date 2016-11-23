@@ -13,9 +13,11 @@
 // serialData = 10     PB2   pin 9 on CN0/CN1 B2 for 10  active HIGH
 
 
-unsigned long frameTimer;  //timer for frame
-const int pixleLength = 85;  //how many pixles in serial string
-int displayBuffer[pixleLength] = {0}; //buffer to store the active frame
+
+uint32_t frameTimer;  //timer for frame
+const uint16_t pixleLength = 85;  //how many pixles in serial string
+uint16_t displayBuffer[pixleLength] = {0}; //buffer to store the active frame
+
 
 
 void setup() {
@@ -24,25 +26,24 @@ void setup() {
   DDRD = B11111110; PORTD = B11100010;
   DDRB = B00000111; PORTB = B00000000;
   clearDisplay();  //reset the display
-  clearBuffer(); invertBuffer();  //make the display all on
+  clearBuffer();  //clear the buffer
 }
 
 
 
 void loop() {
-  write_string_small_top(displayBuffer, "top");
-  write_string_small_bottom(displayBuffer, "bottom");
-  updateDisplay(500);
+  loadRitMdrc();
+  simulateDisplay(2000);
 }
 
 
 
-void updateDisplay(int holdTime) {  //holds the display on for increments of 10ms
+void updateDisplay(uint32_t holdTime) {  //holds the display on for increments of 10ms
   frameTimer = millis();
   while (millis() - frameTimer < holdTime) {
-    for (int Y = 0; Y < 16; Y++) {
+    for (uint8_t Y = 0; Y < 16; Y++) {
       PORTD = PORTD | B01100000;  //G2AU38, G2AU37 ENABLE HIGH
-      for (int X = 0; X < pixleLength; X++) {
+      for (uint16_t X = 0; X < pixleLength; X++) {
         if (displayBuffer[X] >> Y & 1) PORTB = PORTB | B00000100;
         else PORTB = PORTB & B11111011;
         PORTB = PORTB | B00000010;  //pin 8 on CN0/CN1 B1 for 9
@@ -63,7 +64,7 @@ void updateDisplay(int holdTime) {  //holds the display on for increments of 10m
 void clearDisplay() {
   PORTD = B11100010;
   PORTB = B00000000;
-  for (int X = 0; X < pixleLength; X++) {
+  for (uint16_t X = 0; X < pixleLength; X++) {
     PORTB = PORTB | B00000010;  //clock high
     PORTB = PORTB & B11111101;  //clock low
   }
@@ -72,7 +73,7 @@ void clearDisplay() {
 
 
 void clearBuffer() {
-  for (int i = 0; i < pixleLength; i++) {
+  for (uint16_t i = 0; i < pixleLength; i++) {
     displayBuffer[i] = 0x0000;  //invert colors
   }
 }
@@ -80,8 +81,72 @@ void clearBuffer() {
 
 
 void invertBuffer() {
-  for (int i = 0; i < pixleLength; i++) {
+  for (uint16_t i = 0; i < pixleLength; i++) {
     displayBuffer[i] = ~displayBuffer[i];  //invert colors
   }
+}
+
+
+
+void loadRitMdrc() {
+  clearBuffer();
+  uint16_t RIT_MDRC[48] = {
+    0x0088, 0x0104, 0x0104, 0x0104, 0x00f8, 0x0000,  // C
+    0x00c4, 0x0128, 0x0130, 0x0120, 0x01fc, 0x0000,  // R
+    0x00f8, 0x0104, 0x0104, 0x01fc, 0x0104, 0x0000,  // D
+    0x01fc, 0x0080, 0x0040, 0x0080, 0x01fc, 0x0000,  // M
+    0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,  //
+    0x0100, 0x0100, 0x01fc, 0x0100, 0x0100, 0x0000,  // T
+    0x0000, 0x0104, 0x01fc, 0x0104, 0x0000, 0x0000,  // I
+    0x00c4, 0x0128, 0x0130, 0x0120, 0x01fc, 0x0000   // R
+  };
+
+  for (uint8_t i = 0; i < 48; i++) displayBuffer[i + 19] =  RIT_MDRC[i] << 3;
+  flipBufferY(); flipBufferX();
+}
+
+
+
+void flipBufferY() {
+  uint16_t workingVariable;
+  uint16_t tempCounter;
+  for (uint16_t i = 0; i < pixleLength; i++) {
+    workingVariable = 0; tempCounter = 0;
+    for (int8_t j = 15; j >= 0; j--) {
+      workingVariable = workingVariable | ((displayBuffer[i] >> j & 1) << tempCounter);
+      tempCounter++;
+    }
+    displayBuffer[i] =  workingVariable;
+  }
+}
+
+
+
+void flipBufferX() {
+  uint16_t workingVariable;
+  for (uint16_t i = 0; i < pixleLength / 2.0 + 0.5; i++) {
+    workingVariable = displayBuffer[i];
+    displayBuffer[i] = displayBuffer[pixleLength - 1 - i];
+    displayBuffer[pixleLength - 1 - i] =  workingVariable;
+  }
+}
+
+
+
+void simulateDisplay(uint32_t holdTime) {
+  frameTimer = millis();
+  for (uint16_t index = 0; index < pixleLength + 2; index++) Serial.print("=");
+  Serial.println();
+  for (uint16_t i = 0; i < 16; i++) {
+    Serial.print("|");
+    for (uint16_t index = 0; index < pixleLength; index++) {
+      if (displayBuffer[index] & (1 << i)) Serial.print("#");
+      else Serial.print(" ");
+    }
+    Serial.println("|");
+  }
+  for (uint16_t index = 0; index < pixleLength + 2; index++) Serial.print("=");
+  Serial.println();
+  while (millis() - frameTimer < holdTime);
 }
 
